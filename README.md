@@ -3,7 +3,7 @@
 Aplicação web que importa planilhas .xlsx com leituras de instrumento, calcula média, desvio padrão e erro sistemático por ponto,
 compara o erro absoluto com o LEA, atribui o parecer (APROVADO/REPROVADO) e emite o certificado em PDF após análise por usuário distinto do elaborador.
 
-Repositório público: [inserir link do GitHub após a publicação]
+Repositório público: https://github.com/WesleyWiltuschnig/schulz-certificados-mvp.git
 
 ## Tecnologias
 
@@ -59,9 +59,3 @@ python wsgi.py &  python scripts/smoke_http.py http://127.0.0.1:5000
 ```
 
 Resultado da última execução neste ambiente: 54 passaram, 0 falharam; 9 de 9 verificações do teste de fumaça HTTP. Detalhes em `docs/evidencias/`.
-
-## Arquitetura e limitações
-
-Monolito local que replica a separação da Atividade 2 (autenticação, API, ingestão, cálculo, emissão, auditoria); nenhum serviço AWS foi usado.
-Não implementado: balanço de incerteza (RF08, RF09), comparação com a planilha vigente, reemissão versionada, cadastro de critérios e procedimentos, MFA.
-O PDF informa que a incerteza não foi apurada. Ver `docs/matriz_rastreabilidade.md` e `docs/Relatorio_AV03_Grupo6.pdf`.
