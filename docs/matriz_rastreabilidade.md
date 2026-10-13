@@ -1,0 +1,73 @@
+# Matriz de rastreabilidade
+
+Requisitos das Atividades 1, 2 e 3 relacionados à implementação e à evidência.
+Situações: Atendido, Parcial, Pendente, Não aplicável.
+
+| ID | Requisito | Situação | Implementação | Evidência |
+|---|---|---|---|---|
+| RF01 | Autenticação e perfis | Parcial | Login local por sessão, 5 perfis, controle por rota, CSRF. Sem Cognito e sem MFA. | tests/test_fluxo.py: rotas_exigem_autenticacao, login_invalido, auditor_somente_consulta, csrf_obrigatorio |
+| RF02 | Importar relatório de medição | Parcial | Importa .xlsx em leiaute simplificado (modelo em /modelo.xlsx). O relatório Calypso real não foi fornecido. | tests/test_ingestao.py; docs/evidencias/smoke_http.txt |
+| RF03 | Identificar e numerar blocos de medição | Parcial | Colunas Leitura_1..n; exige exatamente 2 (RN01). Não detecta repetição de sequência do Calypso. | tests/test_ingestao.py: um_bloco, tres_blocos |
+| RF04 | Higienização (Quadro 10) | Parcial | H01, H03, H04, H05, H06, H08, H10 (campos da planilha), H11, H13. Não implementadas: H02, H07, H09, H12, H14. | tests/test_ingestao.py |
+| RF05 | Recusar sufixo de teste | Atendido | Plano terminado em _TESTE é recusado e a recusa é registrada. | tests/test_ingestao.py: sufixo_de_teste; test_fluxo.py: sufixo_teste_recusado_e_registrado |
+| RF06 | Recalcular desvio | Atendido | Erro recalculado (média - padrão); coluna Desvio informada é comparada e gera aviso. | tests/test_fluxo.py: desvio_informado_divergente_gera_aviso |
+| RF07 | Média e desvio padrão por parâmetro | Atendido | Decimal; desvio padrão amostral (n-1). | tests/test_metrologia.py |
+| RF08 | Balanço de incerteza | Pendente | Método EA-4/02 e dados do balanço não foram fornecidos. O certificado declara que a incerteza não foi apurada. | - |
+| RF09 | Selecionar bloco de incerteza | Pendente | Depende do RF08. | - |
+| RF10 | Recuperar cadastros | Parcial | Dados do padrão vêm do cadastro; instrumento vem da planilha; procedimento não modelado. | tests/test_fluxo.py: finalizacao_gera_numero_pdf |
+| RF11 | Vincular padrão ao relatório | Atendido | Código do relatório deve coincidir com o padrão selecionado (ignora pontuação). | tests/test_ingestao.py: padrao_divergente; test_fluxo.py: padrao_divergente_recusado |
+| RF12 | Conformidade frente ao critério | Parcial | Classificação por ponto com LEA da planilha (Atividade 3) e parecer APROVADO/REPROVADO. Cadastro de critérios não implementado. | tests/test_metrologia.py; test_fluxo.py: upload_reprovado |
+| RF13 | Impedir marcador não substituído | Atendido | Varredura de XX, YY, TODO, PREENCHER e {{ }} antes do PDF; bloqueia a finalização. | tests/test_fluxo.py: marcador_xx_bloqueia_emissao, detector_de_marcadores, pdf_sem_marcadores |
+| RF14 | Composição por comando único | Atendido | O envio da planilha executa leitura, cálculo e persistência em uma transação. | tests/test_fluxo.py: upload_valido_calcula |
+| RF15 | Apresentar para análise | Atendido | Tela de detalhe com valores, erros, classificação, avisos e parecer antes da finalização. | docs/evidencias/02_detalhe_aprovada.png |
+| RF16 | Registrar finalização | Atendido | Responsável, data/hora UTC e situação gravados; evento de auditoria. | tests/test_fluxo.py: finalizacao_gera_numero_pdf |
+| RF17 | PDF com numeração sequencial | Atendido | NNNNN/AAAA por contador transacional; PDF via reportlab. | tests/test_fluxo.py: numeracao_sequencial_unica; docs/evidencias/desempenho.txt |
+| RF18 | Repositório pesquisável | Atendido | Filtros por instrumento, número, situação e período da medição. | tests/test_fluxo.py: pesquisa_por_instrumento_status_e_numero |
+| RF19 | Registro de auditoria | Atendido | Tabela auditoria (importação, recusa, finalização, devolução, download, login). | docs/evidencias/05_detalhe_finalizado.png |
+| RF20 | Manter cadastros | Parcial | Cadastro de padrões por administrador. Procedimentos, critérios e usuários sem tela. | tests/test_fluxo.py: cadastro_de_padroes_somente_admin |
+| RF21 | Alerta de padrão vencido | Parcial | Aviso na tela; não exige justificativa. | tests/test_fluxo.py: padrao_vencido_gera_aviso |
+| RF22 | Relatório de inconsistências | Parcial | Avisos por calibração e tabela de rejeições; sem relatório dedicado. | docs/evidencias/04_recusa_teste.png |
+| RF23 | Reemissão controlada | Pendente | Existe devolução com justificativa; não há nova versão vinculada. | tests/test_fluxo.py: devolucao_exige_justificativa |
+| RF24 | Leiaute parametrizável | Pendente | Fora do escopo. | - |
+| RNF01 | Composição em até 10 s | Atendido | Medido localmente (SQLite, processo único). | docs/evidencias/desempenho.txt; tests/test_fluxo.py: tempo_de_processamento |
+| RNF02 | 700 calibrações/mês | Parcial | Teste com 50 calibrações sintéticas de 14 pontos; 700 não executadas. | docs/evidencias/desempenho.txt |
+| RNF03 | Exatidão frente à planilha vigente | Pendente | Planilha vigente e incerteza indisponíveis. Cálculos de média, desvio e erro testados com valores conhecidos. | tests/test_metrologia.py |
+| RNF04 | Precisão de 7 casas | Atendido | Decimal; persistência em texto; arredondamento só na apresentação. | tests/test_metrologia.py: precisao_de_sete_casas_preservada |
+| RNF05 | Docker | Parcial | Dockerfile fornecido; imagem não construída (Docker indisponível no ambiente). | Dockerfile |
+| RNF06 | Entrega em pacote compactado | Atendido | schulz-certificados-mvp.zip. | - |
+| RNF07 | Segurança e controle de acesso | Parcial | Hash de senha, perfis, CSRF, registro de tentativas de login. Sem MFA. | tests/test_fluxo.py: login_invalido_e_registrado, csrf_obrigatorio |
+| RNF08 | Certificado imutável | Atendido | Gatilhos SQLite bloqueiam UPDATE/DELETE; hash do PDF conferido no download. Correção por nova versão não implementada. | tests/test_fluxo.py: finalizacao_gera_numero_pdf_e_imutabilidade, download_exige_autenticacao_e_valida_hash |
+| RNF09 | Datas independentes de região | Atendido | ISO 8601 no banco; dd/mm/aaaa na exibição. | tests/test_ingestao.py: interpretar_data_formatos |
+| RNF10 | Mínimo de passos | Parcial | Dois passos (enviar, finalizar). Sem teste de usabilidade com usuários. | docs/evidencias/smoke_http.txt |
+| RNF11 | Disponibilidade | Pendente | Nada implantado. | - |
+| RNF12 | Rastreabilidade do dado impresso | Parcial | Arquivo original e SHA-256 guardados; pontos persistidos. Sem navegação do PDF até a célula de origem. | app/servicos.py |
+| RNF13 | Log de ingestões e emissões | Parcial | Auditoria e rejeições em banco; sem log estruturado em arquivo. | docs/evidencias/log_cenario.txt |
+| RNF14 | Manutenibilidade | Atendido | Código organizado, README, 54 testes automatizados. | README.md |
+| RN01 | Média das medições; blocos conforme previsto | Atendido | Rejeita número de leituras diferente de 2. | tests/test_ingestao.py: um_bloco, tres_blocos |
+| RN02 | Erro = obtido - nominal | Atendido | Sempre recalculado. | tests/test_metrologia.py |
+| RN03 | Padrão declarado = padrão do relatório | Atendido | Bloqueia a ingestão. | tests/test_ingestao.py: padrao_divergente |
+| RN04 | Padrão vigente na data da medição | Parcial | Apenas aviso. | tests/test_fluxo.py: padrao_vencido_gera_aviso |
+| RN05 | Conformidade obrigatória | Atendido | Parecer persistido (restrição CHECK) e exibido no certificado. | tests/test_fluxo.py: upload_reprovado |
+| RN06 | Sem marcador no texto | Atendido | Ver RF13. | tests/test_fluxo.py: marcador_xx_bloqueia_emissao |
+| RN07 | Numeração sequencial e única | Atendido | Contador atualizado na mesma transação; falha não consome número. | tests/test_fluxo.py: numeracao_sequencial_unica, marcador_xx_bloqueia_emissao |
+| RN08 | Finalizado é imutável | Parcial | Imutabilidade implementada; correção com nova versão não. | tests/test_fluxo.py: imutabilidade |
+| RN09 | Elaborador diferente de quem finaliza | Atendido | Comparação de identificadores na finalização. | tests/test_fluxo.py: segregacao_de_funcoes_mesmo_usuario |
+| RN10 | Dado de teste não gera certificado | Atendido | Ver RF05. | tests/test_fluxo.py |
+| RN11 | Campo obrigatório do cadastro | Parcial | Campos obrigatórios da planilha e do padrão; dicionário completo não aplicado. | tests/test_ingestao.py: campo_obrigatorio_ausente |
+| RN12 | Incerteza em milímetros | Pendente | Depende do RF08. | - |
+| RN13 | Bloco de incerteza pelo padrão | Pendente | Depende do RF09. | - |
+| RN14 | Temperatura numérica em °C | Atendido | Extrai valor de '20,4°'; rejeita texto não numérico. | tests/test_ingestao.py: temperatura_nao_numerica, extrair_temperatura |
+| A3-1 | Ler Excel com leituras e valores do padrão | Atendido | openpyxl; sem execução de macros. | tests/test_ingestao.py |
+| A3-2 | Média das leituras por ponto | Atendido | app/metrologia.py: media. | tests/test_metrologia.py |
+| A3-3 | Erro sistemático (média - padrão) | Atendido | app/metrologia.py: erro_sistematico. | tests/test_metrologia.py |
+| A3-4 | Classificar por ponto contra o LEA | Atendido | DENTRO_DA_TOLERANCIA / FORA_DA_TOLERANCIA; limite exato é DENTRO. | tests/test_metrologia.py: limite_exato, acima_do_limite |
+| A3-5 | Parecer APROVADO/REPROVADO | Atendido | Aprovado só se todos os pontos estão dentro. | tests/test_metrologia.py: parecer_* |
+| A3-6 | Interface web limpa | Atendido | Páginas HTML renderizadas no servidor. | docs/evidencias/*.png |
+| A3-7 | Evidências de testes no relatório | Atendido | Relatório PDF com resultados reais. | docs/Relatorio_AV03_Grupo6.pdf |
+| A3-8 | Repositório público no GitHub | Pendente | Não publicado: requer ação manual do grupo. | - |
+| CA-A2-05 | Incerteza coincide com a planilha vigente | Pendente | Ver RF08 e RNF03. | - |
+| CA-A2-12 | Download autorizado com URL temporária | Parcial | Exige login e confere hash; não usa URL pré-assinada (sem S3). | tests/test_fluxo.py: download_exige_autenticacao_e_valida_hash |
+| CA-A2-13 | Logs sem dados sensíveis | Parcial | Auditoria guarda identificadores e resultados, não medições. | app/servicos.py |
+| CA-A2-15 | Painel de cobrança em R$ 0,00 | Não aplicável | Nada foi implantado na AWS. | - |
+
+Totais: Parcial 20, Atendido 33, Pendente 10, Não aplicável 1 (de 64).

@@ -1,0 +1,8 @@
+{% extends "base.html" %}{% block corpo %}
+<h1>Nova calibração</h1>
+<form method="post" enctype="multipart/form-data"><input type="hidden" name="csrf" value="{{ csrf_token }}">
+<p>Padrão utilizado <select name="padrao_id">{% for p in padroes %}<option value="{{ p.id }}">{{ p.codigo }} - {{ p.denominacao }}</option>{% endfor %}</select></p>
+<p>Planilha (.xlsx) <input type="file" name="planilha" accept=".xlsx"> <button class="acao">Processar</button></p></form>
+<p class="pequeno"><a href="{{ url_for('web.modelo') }}">Baixar planilha modelo</a></p>
+{% if erros %}<h2>Ingestão recusada</h2>{% for e in erros %}<div class="msg erro"><strong>{{ e.codigo }}</strong> {{ e.mensagem }}</div>{% endfor %}{% endif %}
+{% endblock %}

@@ -1,0 +1,15 @@
+Upload planilha valida (aprovada): HTTP 302 -> /calibracoes/1
+Upload planilha valida (reprovada): HTTP 302 -> /calibracoes/2
+Upload plano com sufixo TESTE: HTTP 422 (esperado 422)
+Upload com padrao divergente: HTTP 422 (esperado 422)
+Upload com um bloco de leituras: HTTP 422 (esperado 422)
+Reenvio do mesmo arquivo: HTTP 422 (esperado 422)
+Executor tenta finalizar: HTTP 303; situacao permanece AGUARDANDO_ANALISE
+Emissor tenta finalizar o que ele mesmo elaborou: bloqueado (RN09)
+Emissor finaliza calibracao do executor: certificado 00001 emitido
+Devolucao com justificativa: HTTP 302
+Download do PDF: HTTP 200, 3539 bytes, inicio b'%PDF-'
+Download sem login: HTTP 302 (esperado 302)
+UPDATE direto em certificado finalizado: bloqueado pelo banco (certificado finalizado e imutavel)
+Rejeicoes registradas: 4
+Eventos de auditoria: 13

@@ -1,0 +1,10 @@
+{% extends "base.html" %}{% block corpo %}
+<h1>Padrões cadastrados</h1>
+<p class="pequeno">Dados de demonstração fictícios.</p>
+<table><tr><th>Código</th><th>Denominação</th><th>Série</th><th>Certificado do padrão</th><th>Última calibração</th><th>Próxima calibração</th></tr>
+{% for p in padroes %}<tr><td>{{ p.codigo }}</td><td>{{ p.denominacao }}</td><td>{{ p.numero_serie }}</td><td>{{ p.certificado_rastreabilidade }}</td><td>{{ p.data_ultima_calibracao|data_br }}</td><td>{{ p.data_proxima_calibracao|data_br }}</td></tr>{% endfor %}</table>
+{% if g.user.papel == 'administrador' %}<h2>Cadastrar padrão</h2>
+<form method="post"><input type="hidden" name="csrf" value="{{ csrf_token }}">
+Código <input name="codigo" size="8"> Denominação <input name="denominacao"> Fabricante <input name="fabricante" size="10"> Série <input name="numero_serie" size="8"><br>
+Certificado <input name="certificado" size="12"> Última <input type="date" name="ultima"> Próxima <input type="date" name="proxima"> <button class="acao">Cadastrar</button></form>{% endif %}
+{% endblock %}

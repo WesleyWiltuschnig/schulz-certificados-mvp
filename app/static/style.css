@@ -1,0 +1,23 @@
+body { font-family: Arial, Helvetica, sans-serif; font-size: 14px; margin: 0; color: #222; background: #f4f4f4; }
+.topo { background: #1f3a5f; color: #fff; padding: 10px 20px; }
+.topo a { color: #fff; margin-right: 16px; text-decoration: none; }
+.topo form { display: inline; }
+.topo button { background: none; border: 1px solid #fff; color: #fff; padding: 3px 8px; cursor: pointer; }
+.conteudo { padding: 20px; max-width: 1100px; margin: 0 auto; background: #fff; }
+h1 { font-size: 20px; margin-top: 0; }
+h2 { font-size: 16px; margin-top: 24px; }
+table { border-collapse: collapse; width: 100%; margin: 8px 0; }
+th, td { border: 1px solid #bbb; padding: 5px 8px; text-align: left; }
+th { background: #e6e9ee; }
+input, select { padding: 4px; margin: 2px 6px 2px 0; }
+button.acao { padding: 6px 14px; cursor: pointer; }
+.msg { padding: 8px 12px; margin: 8px 0; border: 1px solid; }
+.msg.ok { background: #e7f4e7; border-color: #6a9f6a; }
+.msg.erro { background: #fbeaea; border-color: #c06060; }
+.aviso { background: #fff6dd; border: 1px solid #c9a63a; padding: 6px 10px; margin: 4px 0; }
+.dentro { color: #1d6b1d; font-weight: bold; }
+.fora { color: #a02020; font-weight: bold; }
+.parecer { font-size: 18px; font-weight: bold; padding: 8px 12px; border: 2px solid; display: inline-block; }
+.parecer.APROVADO { color: #1d6b1d; border-color: #1d6b1d; }
+.parecer.REPROVADO { color: #a02020; border-color: #a02020; }
+.pequeno { font-size: 12px; color: #555; }

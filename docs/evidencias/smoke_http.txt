@@ -1,0 +1,11 @@
+OK    GET / sem login redireciona [302]
+OK    login do executor [302]
+OK    upload de planilha valida [/calibracoes/1]
+OK    detalhe mostra APROVADO e AGUARDANDO_ANALISE
+OK    planilha _TESTE recusada (422) [422]
+OK    emissor finaliza (303 redireciona) [302]
+OK    download do PDF [200 3541 bytes]
+OK    PDF sem login negado [302]
+OK    POST sem CSRF rejeitado [400]
+
+9/9 verificacoes passaram

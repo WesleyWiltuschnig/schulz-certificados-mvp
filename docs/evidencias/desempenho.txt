@@ -1,0 +1,5 @@
+Calibracoes sinteticas processadas: 50 (14 pontos cada)
+Importacao+calculo: media 8 ms, maximo 9 ms
+Finalizacao+PDF: media 20 ms, maximo 37 ms
+Numeracao sequencial sem lacunas/duplicatas: True (00001/2026 a 00050/2026)
+Observacao: medicao em processo unico, SQLite local; nao representa a AWS.

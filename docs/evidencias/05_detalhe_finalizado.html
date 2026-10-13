@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><title>Certificados de Calibração</title>
+<style>body { font-family: Arial, Helvetica, sans-serif; font-size: 14px; margin: 0; color: #222; background: #f4f4f4; }
+.topo { background: #1f3a5f; color: #fff; padding: 10px 20px; }
+.topo a { color: #fff; margin-right: 16px; text-decoration: none; }
+.topo form { display: inline; }
+.topo button { background: none; border: 1px solid #fff; color: #fff; padding: 3px 8px; cursor: pointer; }
+.conteudo { padding: 20px; max-width: 1100px; margin: 0 auto; background: #fff; }
+h1 { font-size: 20px; margin-top: 0; }
+h2 { font-size: 16px; margin-top: 24px; }
+table { border-collapse: collapse; width: 100%; margin: 8px 0; }
+th, td { border: 1px solid #bbb; padding: 5px 8px; text-align: left; }
+th { background: #e6e9ee; }
+input, select { padding: 4px; margin: 2px 6px 2px 0; }
+button.acao { padding: 6px 14px; cursor: pointer; }
+.msg { padding: 8px 12px; margin: 8px 0; border: 1px solid; }
+.msg.ok { background: #e7f4e7; border-color: #6a9f6a; }
+.msg.erro { background: #fbeaea; border-color: #c06060; }
+.aviso { background: #fff6dd; border: 1px solid #c9a63a; padding: 6px 10px; margin: 4px 0; }
+.dentro { color: #1d6b1d; font-weight: bold; }
+.fora { color: #a02020; font-weight: bold; }
+.parecer { font-size: 18px; font-weight: bold; padding: 8px 12px; border: 2px solid; display: inline-block; }
+.parecer.APROVADO { color: #1d6b1d; border-color: #1d6b1d; }
+.parecer.REPROVADO { color: #a02020; border-color: #a02020; }
+.pequeno { font-size: 12px; color: #555; }
+</style></head>
+<body>
+<div class="topo">
+  <strong>Certificados de Calibração (MVP)</strong> &nbsp;&nbsp;
+  
+  <a href="/">Calibrações</a>
+  <a href="/calibracoes/nova">Nova calibração</a>
+  <a href="/padroes">Padrões</a>
+  <span style="float:right">Emissor Demonstração (emissor)
+    <form method="post" action="/logout"><input type="hidden" name="csrf" value="5af971df1efb7250f90e3f7fd916649b"><button>Sair</button></form></span>
+  
+</div>
+<div class="conteudo">
+
+
+<h1>Calibração 1 - MP-0042</h1>
+<table>
+<tr><th>Denominação</th><td>Micrômetro externo 0-25 mm</td><th>Situação</th><td>FINALIZADO</td></tr>
+<tr><th>Plano de medição</th><td>703.1208</td><th>Data da medição</th><td>13/08/2026</td></tr>
+<tr><th>Temperatura (°C)</th><td>20,4</td><th>Padrão</th><td>500008 - Máquina de medição por coordenadas (demo A)</td></tr>
+<tr><th>Executor</th><td>Executor Demonstração</td><th>Arquivo</th><td>calibracao.xlsx<br><span class="pequeno">SHA-256 e1d111b0e840b329...</span></td></tr>
+</table>
+
+<h2>Resultados por ponto (2 leituras por ponto)</h2>
+<table><tr><th>Ponto</th><th>Valor padrão</th><th>Leituras</th><th>Média</th><th>Desvio padrão</th><th>Erro sistemático</th><th>|Erro|</th><th>LEA</th><th>Classificação</th></tr>
+<tr><td>P1 5,000 mm</td><td>5</td><td>5,001 ; 5,0006</td><td>5,0008</td><td>0,0002828</td><td>0,0008</td><td>0,0008</td><td>0,002</td>
+<td class="dentro">DENTRO_DA_TOLERANCIA</td></tr><tr><td>P2 10,000 mm</td><td>10</td><td>10,0012 ; 10,0016</td><td>10,0014</td><td>0,0002828</td><td>0,0014</td><td>0,0014</td><td>0,002</td>
+<td class="dentro">DENTRO_DA_TOLERANCIA</td></tr><tr><td>P3 15,000 mm</td><td>15</td><td>15,0004 ; 15</td><td>15,0002</td><td>0,0002828</td><td>0,0002</td><td>0,0002</td><td>0,002</td>
+<td class="dentro">DENTRO_DA_TOLERANCIA</td></tr><tr><td>P4 20,000 mm</td><td>20</td><td>20,0011 ; 20,0013</td><td>20,0012</td><td>0,0001414</td><td>0,0012</td><td>0,0012</td><td>0,002</td>
+<td class="dentro">DENTRO_DA_TOLERANCIA</td></tr></table>
+<p>Parecer final: <span class="parecer APROVADO">APROVADO</span></p>
+
+<p>Certificado <strong>00001/2026</strong> (versão 1), finalizado em 2026-10-09T22:22:29+00:00.
+Integridade do PDF: confere com o hash registrado.
+<a href="/calibracoes/1/certificado.pdf">Baixar PDF</a></p>
+
+<h2>Trilha de auditoria</h2>
+<table><tr><th>Data (UTC)</th><th>Usuário</th><th>Ação</th><th>Detalhe</th></tr>
+<tr><td>2026-10-09T22:22:28+00:00</td><td>Executor Demonstração</td><td>CALIBRACAO_IMPORTADA</td><td>parecer=APROVADO</td></tr><tr><td>2026-10-09T22:22:29+00:00</td><td>Emissor Demonstração</td><td>CERTIFICADO_FINALIZADO</td><td>00001/2026</td></tr></table>
+
+</div></body></html>

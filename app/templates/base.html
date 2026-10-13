@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><title>{% block titulo %}Certificados de Calibração{% endblock %}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"></head>
+<body>
+<div class="topo">
+  <strong>Certificados de Calibração (MVP)</strong> &nbsp;&nbsp;
+  {% if g.user %}
+  <a href="{{ url_for('web.lista') }}">Calibrações</a>
+  {% if g.user.papel in ['executor','emissor','signatario'] %}<a href="{{ url_for('web.nova') }}">Nova calibração</a>{% endif %}
+  <a href="{{ url_for('web.padroes') }}">Padrões</a>
+  <span style="float:right">{{ g.user.nome }} ({{ g.user.papel }})
+    <form method="post" action="{{ url_for('web.logout') }}"><input type="hidden" name="csrf" value="{{ csrf_token }}"><button>Sair</button></form></span>
+  {% endif %}
+</div>
+<div class="conteudo">
+{% with msgs = get_flashed_messages(with_categories=true) %}{% for cat, m in msgs %}<div class="msg {{ cat }}">{{ m }}</div>{% endfor %}{% endwith %}
+{% block corpo %}{% endblock %}
+</div></body></html>

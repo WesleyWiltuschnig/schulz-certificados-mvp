@@ -1,0 +1,28 @@
+{% extends "base.html" %}{% block corpo %}
+<h1>Calibração {{ cal.id }} - {{ cal.instrumento }}</h1>
+<table>
+<tr><th>Denominação</th><td>{{ cal.denominacao }}</td><th>Situação</th><td>{{ cal.status }}</td></tr>
+<tr><th>Plano de medição</th><td>{{ cal.plano_medicao }}</td><th>Data da medição</th><td>{{ cal.data_medicao|data_br }}</td></tr>
+<tr><th>Temperatura (°C)</th><td>{{ cal.temperatura|fmt(1) }}</td><th>Padrão</th><td>{{ cal.padrao_codigo }} - {{ cal.padrao_nome }}</td></tr>
+<tr><th>Executor</th><td>{{ cal.executor }}</td><th>Arquivo</th><td>{{ cal.arquivo_nome }}<br><span class="pequeno">SHA-256 {{ cal.arquivo_sha256[:16] }}...</span></td></tr>
+</table>
+{% for a in cal.avisos|lista %}<div class="aviso">{{ a }}</div>{% endfor %}
+<h2>Resultados por ponto ({{ cal.blocos }} leituras por ponto)</h2>
+<table><tr><th>Ponto</th><th>Valor padrão</th><th>Leituras</th><th>Média</th><th>Desvio padrão</th><th>Erro sistemático</th><th>|Erro|</th><th>LEA</th><th>Classificação</th></tr>
+{% for p in pontos %}<tr><td>{{ p.nome }}</td><td>{{ p.referencia|replace('.',',') }}</td><td>{{ p.leituras|lista|join(' ; ')|replace('.',',') }}</td><td>{{ p.media|replace('.',',') }}</td><td>{{ p.desvio_padrao|fmt(7) }}</td><td>{{ p.erro|replace('.',',') }}</td><td>{{ p.erro_abs|replace('.',',') }}</td><td>{{ p.lea|replace('.',',') }}</td>
+<td class="{{ 'dentro' if p.classificacao=='DENTRO_DA_TOLERANCIA' else 'fora' }}">{{ p.classificacao }}</td></tr>{% endfor %}</table>
+<p>Parecer final: <span class="parecer {{ cal.parecer }}">{{ cal.parecer }}</span></p>
+{% if cal.justificativa_devolucao %}<div class="msg erro">Devolvida: {{ cal.justificativa_devolucao }}</div>{% endif %}
+{% if cert %}<p>Certificado <strong>{{ cert.numero }}</strong> (versão {{ cert.versao }}), finalizado em {{ cert.finalizado_em }}.
+Integridade do PDF: {{ 'confere com o hash registrado' if integro else 'DIVERGENTE' }}.
+<a href="{{ url_for('web.certificado_pdf', cal_id=cal.id) }}">Baixar PDF</a></p>{% endif %}
+{% if cal.status == 'AGUARDANDO_ANALISE' and g.user.papel in ['emissor','signatario'] %}
+<h2>Análise</h2>
+<form method="post" action="{{ url_for('web.finalizar', cal_id=cal.id) }}" style="display:inline"><input type="hidden" name="csrf" value="{{ csrf_token }}"><button class="acao">Finalizar certificado</button></form>
+<form method="post" action="{{ url_for('web.devolver', cal_id=cal.id) }}" style="display:inline">
+<input type="hidden" name="csrf" value="{{ csrf_token }}"><input name="justificativa" placeholder="Justificativa" size="40"><button class="acao">Devolver para correção</button></form>
+{% endif %}
+<h2>Trilha de auditoria</h2>
+<table><tr><th>Data (UTC)</th><th>Usuário</th><th>Ação</th><th>Detalhe</th></tr>
+{% for t in trilha %}<tr><td>{{ t.criado_em }}</td><td>{{ t.usuario or '' }}</td><td>{{ t.acao }}</td><td>{{ t.detalhe or '' }}</td></tr>{% endfor %}</table>
+{% endblock %}

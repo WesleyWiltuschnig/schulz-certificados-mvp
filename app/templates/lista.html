@@ -1,0 +1,9 @@
+{% extends "base.html" %}{% block corpo %}
+<h1>Calibrações e certificados</h1>
+<form method="get">Instrumento <input name="instrumento" value="{{ f.instrumento }}"> Número <input name="numero" value="{{ f.numero }}" size="10">
+Situação <select name="status"><option value="">todas</option>{% for s in ['AGUARDANDO_ANALISE','FINALIZADO','DEVOLVIDO'] %}<option {{ 'selected' if f.status==s }}>{{ s }}</option>{% endfor %}</select>
+Medição de <input type="date" name="de" value="{{ f.de }}"> até <input type="date" name="ate" value="{{ f.ate }}"> <button class="acao">Filtrar</button></form>
+<table><tr><th>Id</th><th>Instrumento</th><th>Data da medição</th><th>Parecer</th><th>Situação</th><th>Certificado</th><th>Executor</th></tr>
+{% for c in linhas %}<tr><td><a href="{{ url_for('web.detalhe', cal_id=c.id) }}">{{ c.id }}</a></td><td>{{ c.instrumento }}</td><td>{{ c.data_medicao|data_br }}</td><td>{{ c.parecer }}</td><td>{{ c.status }}</td><td>{{ c.numero or '' }}</td><td>{{ c.executor }}</td></tr>
+{% else %}<tr><td colspan="7">Nenhum resultado encontrado.</td></tr>{% endfor %}</table>
+{% endblock %}
