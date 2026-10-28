@@ -1,0 +1,24 @@
+
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Schulz MVP - referencia Serverless
+
+Resources:
+  CertificadosApi:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      MemorySize: 128
+      Timeout: 10
+      Events:
+        Status:
+          Type: Api
+          Properties:
+            Path: /status
+            Method: get
+
+Outputs:
+  ApiUrl:
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/status"
