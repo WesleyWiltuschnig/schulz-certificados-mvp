@@ -153,7 +153,8 @@ Esse resultado corresponde ao período consultado e não garante gratuidade futu
 
 O vídeo narrado apresenta a aplicação funcionando na AWS, o processamento de calibrações, a emissão do certificado e os arquivos publicados no GitHub.
 
-**Link do vídeo no YouTube:** 
+**Link do vídeo no YouTube:**
+https://youtu.be/-BUnlBIhwDs
 
 ## Considerações finais
 
