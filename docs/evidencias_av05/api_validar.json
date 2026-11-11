@@ -1,0 +1,40 @@
+{
+  "data_medicao": "2026-08-13",
+  "denominacao": "Micrômetro externo 0-25 mm",
+  "emitido_em": "2026-11-11T12:09:37+00:00",
+  "finalizado_por": "Emissor Demonstração",
+  "instrumento": "MP-0042",
+  "integridade_pdf": "confere",
+  "numero": "00001/2026",
+  "padrao": "500008",
+  "parecer": "APROVADO",
+  "pontos": [
+    {
+      "classificacao": "DENTRO_DA_TOLERANCIA",
+      "erro": "0.0008",
+      "lea": "0.002",
+      "ponto": "P1 5,000 mm"
+    },
+    {
+      "classificacao": "DENTRO_DA_TOLERANCIA",
+      "erro": "0.0014",
+      "lea": "0.002",
+      "ponto": "P2 10,000 mm"
+    },
+    {
+      "classificacao": "DENTRO_DA_TOLERANCIA",
+      "erro": "0.0002",
+      "lea": "0.002",
+      "ponto": "P3 15,000 mm"
+    },
+    {
+      "classificacao": "DENTRO_DA_TOLERANCIA",
+      "erro": "0.0012",
+      "lea": "0.002",
+      "ponto": "P4 20,000 mm"
+    }
+  ],
+  "situacao": "FINALIZADO",
+  "valido": true,
+  "versao": 1
+}

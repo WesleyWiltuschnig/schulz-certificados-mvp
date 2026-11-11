@@ -9,8 +9,14 @@ from werkzeug.security import check_password_hash
 from . import amostras, servicos
 from .db import get_db
 from .ingestao import IngestaoInvalida, limpar_texto
+from .validacao import svg_qr, url_validacao
 
 bp = Blueprint("web", __name__)
+
+
+def url_base():
+    """Endereco usado no QR Code: URL_PUBLICA (modo rede/AWS) ou o host da propria requisicao."""
+    return current_app.config.get("URL_PUBLICA") or request.host_url
 
 
 @bp.before_app_request
@@ -121,7 +127,12 @@ def detalhe(cal_id):
     cert, integro = servicos.verificar_integridade(db, cal_id, current_app.config["CERT_DIR"])
     trilha = db.execute("SELECT a.*, u.nome AS usuario FROM auditoria a LEFT JOIN usuarios u ON u.id=a.usuario_id "
                         "WHERE a.calibracao_id=? ORDER BY a.id", (cal_id,)).fetchall()
-    return render_template("detalhe.html", cal=cal, pontos=pontos, cert=cert, integro=integro, trilha=trilha)
+    qr = link_validacao = None
+    if cert is not None and cert["codigo_validacao"]:
+        link_validacao = url_validacao(url_base(), cert["codigo_validacao"])
+        qr = svg_qr(link_validacao, lado=150)
+    return render_template("detalhe.html", cal=cal, pontos=pontos, cert=cert, integro=integro, trilha=trilha,
+                           qr=qr, link_validacao=link_validacao)
 
 
 @bp.route("/api/calibracoes/<int:cal_id>")
@@ -139,7 +150,7 @@ def api_calibracao(cal_id):
 @requer_papel()
 def finalizar(cal_id):
     try:
-        numero = servicos.finalizar(get_db(), g.user, cal_id, current_app.config["CERT_DIR"])
+        numero = servicos.finalizar(get_db(), g.user, cal_id, current_app.config["CERT_DIR"], url_base=url_base())
         flash(f"Certificado {numero} finalizado.", "ok")
     except servicos.RegraDeNegocio as e:
         flash(str(e), "erro")
@@ -169,6 +180,67 @@ def certificado_pdf(cal_id):
         abort(409, "Hash do PDF diverge do registro; arquivo não entregue.")
     servicos.auditar(db, cal_id, g.user["id"], "CERTIFICADO_BAIXADO", cert["numero"])
     return send_file(os.path.join(current_app.config["CERT_DIR"], cert["arquivo"]), mimetype="application/pdf")
+
+
+@bp.route("/api/status")
+def api_status():
+    """Verificacao de saude usada pelo iniciar_aplicacao_schulz.bat (equivale a rota /status do SAM)."""
+    return jsonify({"status": "ok", "projeto": "Schulz Certificados MVP", "versao": "AV05"})
+
+
+@bp.route("/validar")
+def validar_form():
+    """Entrada manual do codigo impresso abaixo do QR Code (quando a camera nao estiver disponivel)."""
+    codigo = limpar_texto(request.args.get("codigo"))
+    if codigo:
+        return redirect(url_for("web.validar", codigo=codigo))
+    return render_template("validar.html", r=None, codigo=None, conferencia=None)
+
+
+@bp.route("/validar/<codigo>")
+def validar(codigo):
+    """Pagina publica aberta pelo QR Code do certificado (validacao mobile no chao de fabrica)."""
+    db = get_db()
+    r = servicos.consultar_validacao(db, codigo, current_app.config["CERT_DIR"])
+    if r is None:
+        return render_template("validar.html", r=None, codigo=codigo, conferencia=None), 404
+    servicos.registrar_validacao(db, r["calibracao"]["id"], "QR Code / página pública")
+    return render_template("validar.html", r=r, codigo=codigo, conferencia=None)
+
+
+@bp.route("/validar/<codigo>/conferir", methods=["POST"])
+def conferir_pdf(codigo):
+    """Confere se o PDF em maos e identico ao emitido (SHA-256), sem login."""
+    db = get_db()
+    r = servicos.consultar_validacao(db, codigo, current_app.config["CERT_DIR"])
+    if r is None:
+        abort(404)
+    arq = request.files.get("pdf")
+    conferencia = {"erro": "Selecione o arquivo PDF do certificado."}
+    if arq and arq.filename:
+        conferencia = servicos.conferir_arquivo(db, codigo, arq.read())
+    return render_template("validar.html", r=r, codigo=codigo, conferencia=conferencia)
+
+
+@bp.route("/api/validar/<codigo>")
+def api_validar(codigo):
+    """Mesma consulta da pagina publica, em JSON (para um app mobile ou integracao)."""
+    db = get_db()
+    r = servicos.consultar_validacao(db, codigo, current_app.config["CERT_DIR"])
+    if r is None:
+        return jsonify({"valido": False, "motivo": "codigo de validacao nao encontrado"}), 404
+    c, cal = r["certificado"], r["calibracao"]
+    servicos.registrar_validacao(db, cal["id"], "API /api/validar")
+    return jsonify({
+        "valido": bool(r["integro"]),
+        "numero": c["numero"], "versao": c["versao"], "emitido_em": c["finalizado_em"],
+        "finalizado_por": c["finalizador"], "instrumento": cal["instrumento"],
+        "denominacao": cal["denominacao"], "data_medicao": cal["data_medicao"],
+        "padrao": cal["padrao_codigo"], "parecer": cal["parecer"], "situacao": cal["status"],
+        "integridade_pdf": "confere" if r["integro"] else "divergente",
+        "pontos": [{"ponto": p["nome"], "erro": p["erro"], "lea": p["lea"], "classificacao": p["classificacao"]}
+                   for p in r["pontos"]],
+    })
 
 
 @bp.route("/modelo.xlsx")

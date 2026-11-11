@@ -19,6 +19,7 @@ def create_app(config=None):
         UPLOAD_DIR=os.path.join(instance, "uploads"),
         CERT_DIR=os.path.join(instance, "certificados"),
         SENHA_DEMO=os.environ.get("SENHA_DEMO", "senha123"),
+        URL_PUBLICA=os.environ.get("URL_PUBLICA"),  # endereco impresso no QR Code (opcional)
         MAX_CONTENT_LENGTH=6 * 1024 * 1024,
         SESSION_COOKIE_HTTPONLY=True,
         SESSION_COOKIE_SAMESITE="Lax",

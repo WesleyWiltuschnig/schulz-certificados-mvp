@@ -1,0 +1,2 @@
+# O .bat precisa de CRLF no Windows: armazenado exatamente como esta (sem conversao de fim de linha)
+*.bat -text

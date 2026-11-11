@@ -1,10 +1,33 @@
 
-# MVP - Emissão de Certificados de Calibração (AV03 e AV04, Projeto Aplicado III)
+# MVP - Emissão de Certificados de Calibração (AV03, AV04 e AV05, Projeto Aplicado III)
 
 Aplicação web que importa planilhas `.xlsx` com leituras de instrumento, calcula média, desvio padrão e erro sistemático por ponto, compara o erro absoluto com o LEA, atribui o parecer (APROVADO/REPROVADO) e emite o certificado em PDF após análise por usuário distinto do elaborador.
 
 **Repositório público:**  
 https://github.com/WesleyWiltuschnig/schulz-certificados-mvp
+
+## Execução rápida no Windows — AV05
+
+1. Instale o **Python 3.10 ou superior** (https://www.python.org/downloads/) marcando *Add python.exe to PATH*.
+2. Baixe este repositório (*Code → Download ZIP*) e extraia a pasta, ou `git clone`.
+3. Dê dois cliques em **`iniciar_aplicacao_schulz.bat`** (na raiz do repositório).
+
+O script verifica o Python 3.10+ no PATH, cria e ativa o ambiente virtual `.venv`, instala o `requirements.txt`, inicia a API backend (`app.py`) numa janela própria e abre a interface no navegador padrão (http://127.0.0.1:5000). Na segunda execução, a instalação é pulada se o `requirements.txt` não mudou.
+
+- Usuários locais de demonstração: `executor1`, `emissor1`, `signatario1`, `admin`, `auditor1` — senha `senha123`.
+- Planilha de teste: `samples/01_valida_aprovada.xlsx` (entre como `executor1` → *Nova calibração*).
+- Para validar pelo **celular** na mesma rede Wi-Fi: `iniciar_aplicacao_schulz.bat rede` (o QR Code passa a usar o IP da máquina; o Windows pode pedir liberação no firewall).
+- Para encerrar: feche a janela **"Schulz MVP - API backend"**.
+
+Em Linux/macOS: `python3 -m venv .venv && . .venv/bin/activate && pip install -r requirements.txt && python app.py --abrir-navegador`.
+
+### Novidades da AV05
+
+- **QR Code de validação mobile** impresso em todo certificado finalizado. A leitura pela câmera do celular abre `/validar/<código>`, página pública (sem login) com parecer, resultado por ponto, situação e integridade do PDF (SHA-256). A página também permite **conferir um PDF recebido** contra o hash registrado. Cada consulta entra na trilha de auditoria.
+- **API**: `GET /api/status` (saúde, usada pelo .bat) e `GET /api/validar/<código>` (validação em JSON).
+- **`app.py`** na raiz: ponto de entrada da aplicação (`--porta`, `--rede`, `--abrir-navegador`).
+- **Testes**: 75 testes automatizados (54 da AV03 + 21 da AV05), executados em Python 3.10, 3.13 e 3.14. `pypdf` foi incluído no `requirements.txt` (era exigido por um teste e faltava).
+- Relatório da AV05: `docs/Relatorio_AV05_Grupo6.pdf`. Evidências em `docs/evidencias_av05/` (geradas por `scripts/gerar_evidencias_av05.py`) e estudo de ROI em `docs/roi/` (`scripts/calcular_roi.py` e `estudo_roi_schulz.xlsx`, com fórmulas).
 
 ## Implantação na AWS — AV04
 
@@ -94,12 +117,14 @@ Segregação de funções, numeração `NNNNN/AAAA` transacional, certificado im
 ## Estrutura
 
 ```text
-app/            código (ingestao, metrologia, servicos, pdfgen, views, db, templates)
-tests/          54 testes automatizados
+app.py          ponto de entrada (API backend + interface web) — AV05
+iniciar_aplicacao_schulz.bat   instalação e execução automatizadas no Windows — AV05
+app/            código (ingestao, metrologia, servicos, pdfgen, validacao, views, db, templates)
+tests/          75 testes automatizados
 scripts/        gerar_amostras, gerar_evidencias, smoke_http, gerar_relatorio, matriz
 samples/        planilhas sintéticas
 serverless/     scripts de referência AWS SAM, Lambda e API Gateway
-docs/           relatório PDF, matriz de rastreabilidade, evidencias/
+docs/           relatórios PDF, matriz de rastreabilidade, evidencias/, evidencias_av05/, roi/
 ```
 
 ## Testes
@@ -118,11 +143,10 @@ python scripts/smoke_http.py http://127.0.0.1:5000
 
 **Resultado da última execução documentada:**
 
-- 54 testes automatizados aprovados.
-- 0 testes com falha.
-- 9 de 9 verificações do teste de fumaça HTTP aprovadas.
+- AV05: 75 testes automatizados aprovados, 0 com falha (Python 3.10, 3.13 e 3.14); 9 de 9 verificações do teste de fumaça HTTP contra o servidor iniciado pelo `app.py`.
+- AV03: 54 testes aprovados e 9 de 9 verificações HTTP.
 
-Detalhes em `docs/evidencias/`.
+Detalhes em `docs/evidencias/` e `docs/evidencias_av05/`.
 
 ## Demonstração funcional — AV04
 

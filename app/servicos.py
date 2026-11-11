@@ -9,10 +9,12 @@ from . import metrologia as met
 from .db import transacao
 from .ingestao import IngestaoInvalida, ler_planilha, limpar_texto
 from .pdfgen import detectar_marcadores, gerar_pdf, montar_documento, texto_plano
+from .validacao import codigo_valido, gerar_codigo, url_validacao
 
 PAPEIS_UPLOAD = {"executor", "emissor", "signatario"}
 PAPEIS_FINALIZA = {"emissor", "signatario"}
 TOLERANCIA_DESVIO = Decimal("0.0000001")
+URL_BASE_PADRAO = "http://127.0.0.1:5000"
 
 
 class RegraDeNegocio(Exception):
@@ -95,18 +97,23 @@ def importar_planilha(db, usuario, padrao_id, nome_arquivo, conteudo, upload_dir
     return cal_id
 
 
-def _contexto(db, cal_id, numero, emitido_em, finalizador_nome):
+def _contexto(db, cal_id, numero, emitido_em, finalizador_nome, codigo=None, url_qr=None):
     cal = db.execute("SELECT * FROM calibracoes WHERE id=?", (cal_id,)).fetchone()
     padrao = db.execute("SELECT * FROM padroes WHERE id=?", (cal["padrao_id"],)).fetchone()
     exe = db.execute("SELECT nome FROM usuarios WHERE id=?", (cal["executor_id"],)).fetchone()
     pontos = [{k: (Decimal(r[k]) if k in ("referencia", "media", "desvio_padrao", "erro", "erro_abs", "lea") else r[k])
                for k in r.keys()} for r in db.execute("SELECT * FROM pontos WHERE calibracao_id=? ORDER BY ordem", (cal_id,))]
     return {"cal": cal, "padrao": padrao, "pontos": pontos, "numero": numero, "emitido_em": emitido_em,
-            "executor": exe["nome"], "finalizador": finalizador_nome}
+            "executor": exe["nome"], "finalizador": finalizador_nome, "codigo_validacao": codigo,
+            "url_validacao": url_qr}
 
 
-def finalizar(db, usuario, cal_id, cert_dir):
-    """UC03: finaliza, numera, gera PDF e torna o certificado imutavel."""
+def finalizar(db, usuario, cal_id, cert_dir, url_base=None):
+    """UC03: finaliza, numera, gera PDF com QR Code de validacao e torna o certificado imutavel.
+
+    `url_base` e o endereco publico da aplicacao (ex.: http://192.168.0.10:5000 ou a URL do
+    Elastic Beanstalk); o QR Code impresso aponta para <url_base>/validar/<codigo>.
+    """
     if usuario["papel"] not in PAPEIS_FINALIZA:
         raise RegraDeNegocio("Perfil sem permissão para finalizar certificados.")
     caminho = None
@@ -127,7 +134,9 @@ def finalizar(db, usuario, cal_id, cert_dir):
             n = db.execute("SELECT ultimo FROM contador_certificados WHERE ano=?", (ano,)).fetchone()[0]
             numero = f"{n:05d}/{ano}"
             emitido_em = agora()
-            doc = montar_documento(_contexto(db, cal_id, numero, emitido_em, usuario["nome"]))
+            codigo = gerar_codigo()
+            url_qr = url_validacao(url_base or URL_BASE_PADRAO, codigo)
+            doc = montar_documento(_contexto(db, cal_id, numero, emitido_em, usuario["nome"], codigo, url_qr))
             marcadores = detectar_marcadores(texto_plano(doc))
             if marcadores:
                 raise RegraDeNegocio("RN06: marcador de preenchimento não substituído: " + ", ".join(marcadores))
@@ -138,8 +147,9 @@ def finalizar(db, usuario, cal_id, cert_dir):
             with open(caminho, "xb") as f:
                 f.write(pdf)
             db.execute("INSERT INTO certificados(calibracao_id,versao,numero,arquivo,pdf_sha256,finalizado_por,"
-                       "finalizado_em) VALUES(?,?,?,?,?,?,?)",
-                       (cal_id, 1, numero, nome, hashlib.sha256(pdf).hexdigest(), usuario["id"], emitido_em))
+                       "finalizado_em,codigo_validacao) VALUES(?,?,?,?,?,?,?,?)",
+                       (cal_id, 1, numero, nome, hashlib.sha256(pdf).hexdigest(), usuario["id"], emitido_em,
+                        codigo))
             db.execute("UPDATE calibracoes SET status='FINALIZADO' WHERE id=?", (cal_id,))
             auditar(db, cal_id, usuario["id"], "CERTIFICADO_FINALIZADO", numero)
     except BaseException:
@@ -169,6 +179,47 @@ def verificar_integridade(db, cal_id, cert_dir):
     c = db.execute("SELECT * FROM certificados WHERE calibracao_id=? ORDER BY versao DESC", (cal_id,)).fetchone()
     if c is None:
         return None, None
-    with open(os.path.join(cert_dir, c["arquivo"]), "rb") as f:
-        ok = hashlib.sha256(f.read()).hexdigest() == c["pdf_sha256"]
-    return c, ok
+    return c, _pdf_integro(c, cert_dir)
+
+
+def _pdf_integro(cert, cert_dir):
+    caminho = os.path.join(cert_dir, cert["arquivo"])
+    if not os.path.exists(caminho):
+        return False
+    with open(caminho, "rb") as f:
+        return hashlib.sha256(f.read()).hexdigest() == cert["pdf_sha256"]
+
+
+def consultar_validacao(db, codigo, cert_dir):
+    """Dados publicos exibidos ao ler o QR Code (sem login). Retorna None se o codigo nao existe.
+
+    Expoe somente o necessario para o chao de fabrica conferir o instrumento: numero, versao,
+    instrumento, datas, parecer e classificacao por ponto. Nao expoe usuarios internos alem do
+    nome de quem finalizou, nem arquivos de origem.
+    """
+    if not codigo_valido(codigo):
+        return None
+    c = db.execute("SELECT ce.*, u.nome AS finalizador FROM certificados ce JOIN usuarios u ON u.id=ce.finalizado_por "
+                   "WHERE ce.codigo_validacao=?", (codigo,)).fetchone()
+    if c is None:
+        return None
+    cal = db.execute("SELECT c.*, p.codigo AS padrao_codigo, p.denominacao AS padrao_nome FROM calibracoes c "
+                     "JOIN padroes p ON p.id=c.padrao_id WHERE c.id=?", (c["calibracao_id"],)).fetchone()
+    pontos = db.execute("SELECT nome, erro, erro_abs, lea, classificacao FROM pontos WHERE calibracao_id=? "
+                        "ORDER BY ordem", (c["calibracao_id"],)).fetchall()
+    return {"certificado": c, "calibracao": cal, "pontos": pontos, "integro": _pdf_integro(c, cert_dir)}
+
+
+def registrar_validacao(db, cal_id, origem):
+    auditar(db, cal_id, None, "CERTIFICADO_VALIDADO", origem)
+
+
+def conferir_arquivo(db, codigo, conteudo):
+    """Compara o SHA-256 de um PDF enviado pelo usuario com o hash registrado na finalizacao."""
+    c = db.execute("SELECT calibracao_id, pdf_sha256 FROM certificados WHERE codigo_validacao=?", (codigo,)).fetchone()
+    if c is None:
+        return None
+    sha = hashlib.sha256(conteudo).hexdigest()
+    confere = sha == c["pdf_sha256"]
+    auditar(db, c["calibracao_id"], None, "PDF_CONFERIDO", "confere" if confere else "DIVERGENTE")
+    return {"confere": confere, "sha256_enviado": sha, "sha256_registrado": c["pdf_sha256"]}

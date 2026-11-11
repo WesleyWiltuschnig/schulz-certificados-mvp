@@ -1,6 +1,7 @@
 """Composicao do certificado (documento + PDF) e varredura de marcadores (RN06)."""
 import io
 import re
+from xml.sax.saxutils import escape
 
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
@@ -9,6 +10,7 @@ from reportlab.lib.units import mm
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
 from .metrologia import arredondar
+from .validacao import desenho_qr
 
 MARCADORES = {"XX", "YY", "TODO", "PREENCHER"}
 
@@ -47,8 +49,20 @@ def montar_documento(ctx):
         "Incerteza de medição: não apurada nesta versão do MVP (balanço de incerteza não implementado).",
         "Documento sem assinatura digital qualificada; integridade verificável pelo hash SHA-256 registrado.",
     ]
+    validacao = None
+    if ctx.get("url_validacao"):
+        validacao = {
+            "codigo": ctx["codigo_validacao"],
+            "url": ctx["url_validacao"],
+            "texto": [
+                "Validação mobile: aponte a câmera do celular para o QR Code para consultar a situação, "
+                "o parecer e a integridade deste certificado no sistema.",
+                f"Código de validação: {ctx['codigo_validacao']}",
+                f"Endereço: {ctx['url_validacao']}",
+            ],
+        }
     return {"titulo": "Certificado de Calibração", "campos": campos, "cabecalho": cabecalho,
-            "linhas": linhas, "parecer": cal["parecer"], "notas": notas}
+            "linhas": linhas, "parecer": cal["parecer"], "notas": notas, "validacao": validacao}
 
 
 def texto_plano(doc):
@@ -57,6 +71,8 @@ def texto_plano(doc):
     partes += doc["cabecalho"]
     partes += [c for linha in doc["linhas"] for c in linha]
     partes += ["Parecer final: " + doc["parecer"]] + doc["notas"]
+    if doc.get("validacao"):
+        partes += doc["validacao"]["texto"]
     return "\n".join(partes)
 
 
@@ -90,5 +106,14 @@ def gerar_pdf(doc):
                              ("FONTSIZE", (0, 0), (-1, 0), 8)]))
     story += [tab, Spacer(1, 6 * mm), Paragraph(f"<b>Parecer final: {doc['parecer']}</b>", st["Heading3"])]
     story += [Paragraph(n, pequeno) for n in doc["notas"]]
+    if doc.get("validacao"):
+        v = doc["validacao"]
+        textos = [Paragraph("<b>Rastreabilidade e validação por QR Code</b>", pequeno)]
+        textos += [Paragraph(escape(t), pequeno) for t in v["texto"]]
+        bloco = Table([[textos, desenho_qr(v["url"], lado=30 * mm)]], colWidths=[136 * mm, 38 * mm])
+        bloco.setStyle(TableStyle([("BOX", (0, 0), (-1, -1), 0.5, colors.grey),
+                                   ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                                   ("ALIGN", (1, 0), (1, 0), "CENTER")]))
+        story += [Spacer(1, 6 * mm), bloco]
     pdf.build(story)
     return buf.getvalue()

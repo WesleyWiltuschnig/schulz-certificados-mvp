@@ -1,0 +1,22 @@
+Servidor (app.py --porta 5000) pronto: True em 1.1 s
+GET /api/status -> {"projeto": "Schulz Certificados MVP", "status": "ok", "versao": "AV05"}
+Upload 01_valida_aprovada.xlsx -> http://127.0.0.1:5000/calibracoes/1 (112 ms ate a tela de resultado)
+Upload 02_valida_reprovada.xlsx -> http://127.0.0.1:5000/calibracoes/2 (129 ms)
+Upload 03_invalida_plano_teste.xlsx -> recusa: RN10 Plano de medição '703.1208_TESTE' indica dado de teste; ingestão recusada.
+Upload 06_invalida_data_sentinela.xlsx -> recusa: H03 Data da medição inválida: data-sentinela (00/00/0000).
+Finalizacao (numeracao + PDF + QR): 183 ms; mensagem: Certificado 00001/2026 finalizado.
+Download do PDF: HTTP 200, 6069 bytes
+QR Code lido do PDF (OpenCV QRCodeDetector): http://127.0.0.1:5000/validar/zoFUk9drYRUTe9zX
+Abertura da URL do QR em modo celular (iPhone 13, 390 px): HTTP 200, titulo 'Validação de certificado 00001/2026'
+Conferencia do PDF original: O arquivo enviado é idêntico ao certificado emitido.
+Conferencia de PDF alterado: O arquivo enviado NÃO é idêntico ao certificado emitido. Hash do arquivo: e8c339f2615df574c23603437fd9791ed1fa9c4ada476f3fc3cc40906180c997
+GET /api/validar/<codigo> -> valido=True, parecer=APROVADO, integridade_pdf=confere
+Trilha de auditoria da calibracao 1:
+Data (UTC)	Usuário	Ação	Detalhe
+2026-11-11T12:09:35+00:00	Executor Demonstração	CALIBRACAO_IMPORTADA	parecer=APROVADO
+2026-11-11T12:09:37+00:00	Emissor Demonstração	CERTIFICADO_FINALIZADO	00001/2026
+2026-11-11T12:09:37+00:00	Emissor Demonstração	CERTIFICADO_BAIXADO	00001/2026
+2026-11-11T12:09:38+00:00		CERTIFICADO_VALIDADO	QR Code / página pública
+2026-11-11T12:09:38+00:00		PDF_CONFERIDO	confere
+2026-11-11T12:09:39+00:00		PDF_CONFERIDO	DIVERGENTE
+2026-11-11T12:09:39+00:00		CERTIFICADO_VALIDADO	API /api/validar

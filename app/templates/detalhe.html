@@ -15,7 +15,12 @@
 {% if cal.justificativa_devolucao %}<div class="msg erro">Devolvida: {{ cal.justificativa_devolucao }}</div>{% endif %}
 {% if cert %}<p>Certificado <strong>{{ cert.numero }}</strong> (versão {{ cert.versao }}), finalizado em {{ cert.finalizado_em }}.
 Integridade do PDF: {{ 'confere com o hash registrado' if integro else 'DIVERGENTE' }}.
-<a href="{{ url_for('web.certificado_pdf', cal_id=cal.id) }}">Baixar PDF</a></p>{% endif %}
+<a href="{{ url_for('web.certificado_pdf', cal_id=cal.id) }}">Baixar PDF</a></p>
+{% if qr %}<div class="qr-bloco"><div class="qr">{{ qr|safe }}</div>
+<div><strong>Validação mobile por QR Code</strong><br>
+O mesmo QR Code está impresso no PDF. Ao ser lido pela câmera do celular, abre a página pública de validação com parecer, pontos e integridade do arquivo.<br>
+<span class="pequeno">Código: {{ cert.codigo_validacao }}</span><br>
+<a href="{{ link_validacao }}">{{ link_validacao }}</a></div></div>{% endif %}{% endif %}
 {% if cal.status == 'AGUARDANDO_ANALISE' and g.user.papel in ['emissor','signatario'] %}
 <h2>Análise</h2>
 <form method="post" action="{{ url_for('web.finalizar', cal_id=cal.id) }}" style="display:inline"><input type="hidden" name="csrf" value="{{ csrf_token }}"><button class="acao">Finalizar certificado</button></form>

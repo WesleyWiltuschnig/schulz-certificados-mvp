@@ -104,9 +104,20 @@ def transacao(db):
         db.execute("COMMIT")
 
 
+def _migrar(con):
+    """AV05: codigo de validacao do QR Code. ALTER TABLE ADD COLUMN preserva bancos ja existentes
+    (os gatilhos de imutabilidade so bloqueiam UPDATE/DELETE de linhas, nao a alteracao de esquema)."""
+    colunas = {r[1] for r in con.execute("PRAGMA table_info(certificados)")}
+    if "codigo_validacao" not in colunas:
+        con.execute("ALTER TABLE certificados ADD COLUMN codigo_validacao TEXT")
+    con.execute("CREATE UNIQUE INDEX IF NOT EXISTS ux_cert_codigo ON certificados(codigo_validacao) "
+                "WHERE codigo_validacao IS NOT NULL")
+
+
 def init_db(app):
     con = sqlite3.connect(app.config["DATABASE"], isolation_level=None)
     con.executescript(SCHEMA)
+    _migrar(con)
     if con.execute("SELECT COUNT(*) FROM usuarios").fetchone()[0] == 0:
         senha = app.config["SENHA_DEMO"]
         for login, nome, papel in USUARIOS_DEMO:
